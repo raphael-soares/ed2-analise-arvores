@@ -1,6 +1,7 @@
 #include <stdlib.h>
 
 #include "avl.h"
+#include "contador.h"
 
 static void avl_balanceamento(Avl *arvore, AvlNo *no);
 static int avl_altura(AvlNo *no);
@@ -25,6 +26,7 @@ void avl_adicionar(Avl *arvore, int valor) {
   AvlNo *no = arvore->raiz;
 
   while (no != NULL) {
+    esforco.busca++;
     if (valor > no->valor) {
       if (no->direita != NULL) {
         no = no->direita;
@@ -82,6 +84,7 @@ void avl_percorrer(AvlNo *no, void (*callback)(int)) {
 
 static void avl_balanceamento(Avl *arvore, AvlNo *no) {
   while (no != NULL) {
+    esforco.ajuste++;
     no->altura = avl_max(avl_altura(no->esquerda), avl_altura(no->direita)) + 1;
     int fator = avl_fb(no);
 
@@ -120,6 +123,7 @@ static int avl_fb(AvlNo *no) {
 }
 
 static AvlNo *avl_rse(Avl *arvore, AvlNo *no) {
+  esforco.ajuste++;
   AvlNo *pai = no->pai;
   AvlNo *direita = no->direita;
 
@@ -151,6 +155,7 @@ static AvlNo *avl_rse(Avl *arvore, AvlNo *no) {
 }
 
 static AvlNo *avl_rsd(Avl *arvore, AvlNo *no) {
+  esforco.ajuste++;
   AvlNo *pai = no->pai;
   AvlNo *esquerda = no->esquerda;
 
