@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 
 #include "avl.h"
@@ -41,7 +40,6 @@ void avl_adicionar(Avl *arvore, int valor) {
     }
   }
 
-  printf("Adicionando %d\n", valor);
   AvlNo *novo = malloc(sizeof(AvlNo));
   novo->valor = valor;
   novo->pai = no;
@@ -89,18 +87,14 @@ static void avl_balanceamento(Avl *arvore, AvlNo *no) {
 
     if (fator > 1) {
       if (avl_fb(no->esquerda) > 0) {
-        printf("RSD(%d)\n", no->valor);
         avl_rsd(arvore, no);
       } else {
-        printf("RDD(%d)\n", no->valor);
         avl_rdd(arvore, no);
       }
     } else if (fator < -1) {
       if (avl_fb(no->direita) < 0) {
-        printf("RSE(%d)\n", no->valor);
         avl_rse(arvore, no);
       } else {
-        printf("RDE(%d)\n", no->valor);
         avl_rde(arvore, no);
       }
     }
