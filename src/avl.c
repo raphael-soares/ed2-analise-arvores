@@ -64,6 +64,7 @@ void avl_adicionar(Avl *arvore, int valor) {
 
 AvlNo *avl_localizar(AvlNo *no, int valor) {
   while (no != NULL) {
+    esforco.busca++;
     if (no->valor == valor) {
       return no;
     }
@@ -72,6 +73,45 @@ AvlNo *avl_localizar(AvlNo *no, int valor) {
   }
 
   return NULL;
+}
+
+void avl_remover(Avl *arvore, int valor) {
+  AvlNo *no = avl_localizar(arvore->raiz, valor);
+  if (no == NULL) {
+    return;
+  }
+
+  if (no->esquerda != NULL && no->direita != NULL) {
+    AvlNo *sucessor = no->direita;
+    esforco.busca++;
+    while (sucessor->esquerda != NULL) {
+      sucessor = sucessor->esquerda;
+      esforco.busca++;
+    }
+    no->valor = sucessor->valor;
+    esforco.ajuste++;
+    no = sucessor;
+  }
+
+  AvlNo *filho = no->esquerda != NULL ? no->esquerda : no->direita;
+  AvlNo *pai = no->pai;
+
+  if (filho != NULL) {
+    filho->pai = pai;
+  }
+  if (pai == NULL) {
+    arvore->raiz = filho;
+  } else if (pai->esquerda == no) {
+    pai->esquerda = filho;
+  } else {
+    pai->direita = filho;
+  }
+  esforco.ajuste++;
+
+  if (pai != NULL) {
+    avl_balanceamento(arvore, pai);
+  }
+  free(no);
 }
 
 void avl_percorrer(AvlNo *no, void (*callback)(int)) {
@@ -102,13 +142,13 @@ static void avl_balanceamento(Avl *arvore, AvlNo *no) {
     int fator = avl_fb(no);
 
     if (fator > 1) {
-      if (avl_fb(no->esquerda) > 0) {
+      if (avl_fb(no->esquerda) >= 0) {
         avl_rsd(arvore, no);
       } else {
         avl_rdd(arvore, no);
       }
     } else if (fator < -1) {
-      if (avl_fb(no->direita) < 0) {
+      if (avl_fb(no->direita) <= 0) {
         avl_rse(arvore, no);
       } else {
         avl_rde(arvore, no);

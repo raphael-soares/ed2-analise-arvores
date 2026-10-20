@@ -17,6 +17,7 @@ Avl *avl_criar(void);
 int avl_vazia(Avl *arvore);
 void avl_adicionar(Avl *arvore, int valor);
 AvlNo *avl_localizar(AvlNo *no, int valor);
+void avl_remover(Avl *arvore, int valor);
 void avl_percorrer(AvlNo *no, void (*callback)(int));
 void avl_destruir(Avl *arvore);
 
