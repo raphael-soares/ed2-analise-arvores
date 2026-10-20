@@ -82,6 +82,19 @@ void avl_percorrer(AvlNo *no, void (*callback)(int)) {
   }
 }
 
+static void avl_liberar(AvlNo *no) {
+  if (no != NULL) {
+    avl_liberar(no->esquerda);
+    avl_liberar(no->direita);
+    free(no);
+  }
+}
+
+void avl_destruir(Avl *arvore) {
+  avl_liberar(arvore->raiz);
+  free(arvore);
+}
+
 static void avl_balanceamento(Avl *arvore, AvlNo *no) {
   while (no != NULL) {
     esforco.ajuste++;
