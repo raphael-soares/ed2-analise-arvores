@@ -40,6 +40,7 @@ int main(int argc, char **argv) {
 
   srand((unsigned)strtoul(argv[2], NULL, 10));
   int *chaves = malloc(sizeof(int) * maior);
+  int *remocao = malloc(sizeof(int) * maior);
 
   for (int t = 0; t < quantos; t++) {
     int n = tamanhos[t];
@@ -47,16 +48,26 @@ int main(int argc, char **argv) {
       chaves[i] = i + 1;
     }
     embaralhar(chaves, n);
+    memcpy(remocao, chaves, sizeof(int) * n);
+    embaralhar(remocao, n);
 
     Avl *arvore = avl_criar();
     esforco_zerar();
     for (int i = 0; i < n; i++) {
       avl_adicionar(arvore, chaves[i]);
     }
-    printf("%d,%llu,%llu\n", n, esforco.busca, esforco.ajuste);
+    Esforco adicao = esforco;
+
+    esforco_zerar();
+    for (int i = 0; i < n; i++) {
+      avl_remover(arvore, remocao[i]);
+    }
+    printf("%d,%llu,%llu,%llu,%llu\n", n, adicao.busca, adicao.ajuste,
+           esforco.busca, esforco.ajuste);
     avl_destruir(arvore);
   }
 
+  free(remocao);
   free(chaves);
   free(tamanhos);
   return 0;
