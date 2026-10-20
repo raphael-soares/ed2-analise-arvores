@@ -1,6 +1,8 @@
 import argparse
+import statistics
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
@@ -9,6 +11,18 @@ BUILD = RAIZ / "build"
 EXECUTAVEL = BUILD / "arvores"
 
 ESTRUTURAS = ["avl"]
+ROTULOS = {"avl": "AVL"}
+COLUNAS = [
+    "n",
+    "adicao_busca",
+    "adicao_ajuste",
+    "adicao_total",
+    "adicao_desvio",
+    "remocao_busca",
+    "remocao_ajuste",
+    "remocao_total",
+    "remocao_desvio",
+]
 
 
 def compilar():
@@ -37,6 +51,44 @@ def executar(estrutura, semente, tamanhos):
     return [tuple(map(int, linha.split(","))) for linha in resultado.stdout.split()]
 
 
+def media(valores):
+    return round(statistics.fmean(valores), 2)
+
+
+def desvio(valores):
+    return round(statistics.stdev(valores), 2) if len(valores) > 1 else 0
+
+
+def resumir(execucoes):
+    linhas = []
+    for amostras in zip(*execucoes):
+        ad_busca = [a[1] for a in amostras]
+        ad_ajuste = [a[2] for a in amostras]
+        rm_busca = [a[3] for a in amostras]
+        rm_ajuste = [a[4] for a in amostras]
+        ad_total = [b + a for b, a in zip(ad_busca, ad_ajuste)]
+        rm_total = [b + a for b, a in zip(rm_busca, rm_ajuste)]
+        linhas.append([
+            amostras[0][0],
+            media(ad_busca),
+            media(ad_ajuste),
+            media(ad_total),
+            desvio(ad_total),
+            media(rm_busca),
+            media(rm_ajuste),
+            media(rm_total),
+            desvio(rm_total),
+        ])
+    return linhas
+
+
+def positivo(texto):
+    valor = int(texto)
+    if valor < 1:
+        raise argparse.ArgumentTypeError("precisa ser maior que zero")
+    return valor
+
+
 def cmd_compilar(args):
     compilar()
 
@@ -47,6 +99,60 @@ def cmd_rodar(args):
     print(f"{args.estrutura}  n={args.n}  semente={args.semente}")
     print(f"adição   busca={ad_busca}  ajuste={ad_ajuste}  total={ad_busca + ad_ajuste}")
     print(f"remoção  busca={rm_busca}  ajuste={rm_ajuste}  total={rm_busca + rm_ajuste}")
+
+
+def cmd_experimento(args):
+    import openpyxl
+    from openpyxl.styles import Font
+
+    inicio = time.perf_counter()
+    garantir_compilado()
+    estruturas = [e for e in ESTRUTURAS if e in args.estruturas]
+    grade = sorted({1} | set(range(args.passo, args.n_max + 1, args.passo)))
+    sementes = range(1, args.amostras + 1)
+
+    resumos = {}
+    for estrutura in estruturas:
+        resumos[estrutura] = resumir([executar(estrutura, s, grade) for s in sementes])
+
+    livro = openpyxl.Workbook()
+    livro.remove(livro.active)
+    for titulo, coluna in (("Adição", COLUNAS.index("adicao_total")), ("Remoção", COLUNAS.index("remocao_total"))):
+        aba = livro.create_sheet(titulo)
+        aba.append(["n", *(ROTULOS[e] for e in estruturas)])
+        for i, n in enumerate(grade):
+            aba.append([n, *(resumos[e][i][coluna] for e in estruturas)])
+
+    for estrutura in estruturas:
+        aba = livro.create_sheet(ROTULOS[estrutura])
+        aba.append(COLUNAS)
+        for linha in resumos[estrutura]:
+            aba.append(linha)
+
+    aba = livro.create_sheet("Sobre")
+    for linha in [
+        ("campo", "valor"),
+        ("busca", "comparações e passos de descida"),
+        ("ajuste", "rotações, recolorações, nós visitados no balanceamento e chaves movidas"),
+        ("total", "busca + ajuste"),
+        ("amostras", args.amostras),
+        ("n_max", args.n_max),
+        ("passo", args.passo),
+        ("sementes", f"1 a {args.amostras}"),
+        ("comando", " ".join(sys.argv)),
+    ]:
+        aba.append(linha)
+
+    for aba in livro.worksheets:
+        for celula in aba[1]:
+            celula.font = Font(bold=True)
+        aba.freeze_panes = "A2"
+
+    saida = Path(args.saida)
+    saida.mkdir(parents=True, exist_ok=True)
+    livro.save(saida / "esforco.xlsx")
+    print(f"planilha: {saida / 'esforco.xlsx'}")
+    print(f"tempo: {time.perf_counter() - inicio:.1f} s")
 
 
 def main():
@@ -61,6 +167,14 @@ def main():
     p.add_argument("--n", type=int, default=1000)
     p.add_argument("--semente", type=int, default=1)
     p.set_defaults(func=cmd_rodar)
+
+    p = sub.add_parser("experimento", help="mede todas as estruturas e grava a planilha")
+    p.add_argument("--estruturas", nargs="+", choices=ESTRUTURAS, default=ESTRUTURAS)
+    p.add_argument("--n-max", type=positivo, default=10000)
+    p.add_argument("--passo", type=positivo, default=1)
+    p.add_argument("--amostras", type=positivo, default=10)
+    p.add_argument("--saida", default="resultados")
+    p.set_defaults(func=cmd_experimento)
 
     args = parser.parse_args()
     args.func(args)
