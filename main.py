@@ -23,6 +23,8 @@ COLUNAS = [
     "remocao_total",
     "remocao_desvio",
 ]
+CORES = {"AVL": "tab:blue"}
+INDIVIDUAIS = [("avl", "AVL", ["AVL"])]
 
 
 def compilar():
@@ -155,6 +157,52 @@ def cmd_experimento(args):
     print(f"tempo: {time.perf_counter() - inicio:.1f} s")
 
 
+def ler_aba(livro, nome):
+    linhas = list(livro[nome].iter_rows(values_only=True))
+    ns = [linha[0] for linha in linhas[1:]]
+    series = {rotulo: [linha[i] for linha in linhas[1:]] for i, rotulo in enumerate(linhas[0]) if i > 0}
+    return ns, series
+
+
+def desenhar(plt, ns, series, rotulos, titulo, destino):
+    fig, ax = plt.subplots(figsize=(8, 5))
+    for rotulo in rotulos:
+        ax.plot(ns, series[rotulo], label=rotulo, color=CORES[rotulo])
+    ax.set_title(titulo)
+    ax.set_xlabel("Tamanho do conjunto (n)")
+    ax.set_ylabel("Esforço (operações)")
+    ax.grid(True)
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(destino.with_suffix(".png"), dpi=200)
+    fig.savefig(destino.with_suffix(".pdf"))
+    plt.close(fig)
+    print(destino.with_suffix(".png"))
+
+
+def cmd_graficos(args):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import openpyxl
+
+    entrada = Path(args.entrada)
+    if not entrada.exists():
+        print(f"arquivo não encontrado: {entrada}", file=sys.stderr)
+        sys.exit(1)
+    livro = openpyxl.load_workbook(entrada, read_only=True)
+    operacoes = [("adicao", "Adição", *ler_aba(livro, "Adição")), ("remocao", "Remoção", *ler_aba(livro, "Remoção"))]
+    livro.close()
+
+    saida = Path(args.saida)
+    saida.mkdir(parents=True, exist_ok=True)
+    for prefixo, operacao, ns, series in operacoes:
+        for nome, titulo, rotulos in INDIVIDUAIS:
+            if all(rotulo in series for rotulo in rotulos):
+                desenhar(plt, ns, series, rotulos, f"{operacao}: {titulo}", saida / f"{prefixo}-{nome}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Esforço de adição e remoção em árvores balanceadas.")
     sub = parser.add_subparsers(dest="comando", required=True)
@@ -175,6 +223,11 @@ def main():
     p.add_argument("--amostras", type=positivo, default=10)
     p.add_argument("--saida", default="resultados")
     p.set_defaults(func=cmd_experimento)
+
+    p = sub.add_parser("graficos", help="gera os gráficos a partir da planilha")
+    p.add_argument("--entrada", default="resultados/esforco.xlsx")
+    p.add_argument("--saida", default="graficos")
+    p.set_defaults(func=cmd_graficos)
 
     args = parser.parse_args()
     args.func(args)
