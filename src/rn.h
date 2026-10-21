@@ -18,6 +18,7 @@ typedef struct {
 
 Rn *rn_criar(void);
 void rn_adicionar(Rn *arvore, int valor);
+void rn_remover(Rn *arvore, int valor);
 void rn_destruir(Rn *arvore);
 
 #endif
