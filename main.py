@@ -10,8 +10,8 @@ SRC = RAIZ / "src"
 BUILD = RAIZ / "build"
 EXECUTAVEL = BUILD / "arvores"
 
-ESTRUTURAS = ["avl"]
-ROTULOS = {"avl": "AVL"}
+ESTRUTURAS = ["avl", "rn"]
+ROTULOS = {"avl": "AVL", "rn": "Rubro-negra"}
 COLUNAS = [
     "n",
     "adicao_busca",
@@ -23,8 +23,8 @@ COLUNAS = [
     "remocao_total",
     "remocao_desvio",
 ]
-CORES = {"AVL": "tab:blue"}
-INDIVIDUAIS = [("avl", "AVL", ["AVL"])]
+CORES = {"AVL": "tab:blue", "Rubro-negra": "tab:red"}
+INDIVIDUAIS = [("avl", "AVL", ["AVL"]), ("rn", "Rubro-negra", ["Rubro-negra"])]
 
 
 def compilar():
