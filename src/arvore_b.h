@@ -15,6 +15,7 @@ typedef struct {
 
 ArvoreB *b_criar(int ordem);
 void b_adicionar(ArvoreB *arvore, int chave);
+void b_remover(ArvoreB *arvore, int chave);
 void b_destruir(ArvoreB *arvore);
 
 #endif

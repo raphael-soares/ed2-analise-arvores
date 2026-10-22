@@ -133,6 +133,109 @@ void b_adicionar(ArvoreB *arvore, int chave) {
   b_adicionaChaveRecursivo(arvore, no, NULL, chave);
 }
 
+static void b_emprestaDaEsquerda(BNo *pai, int k, BNo *irmao, BNo *no) {
+  for (int j = no->total; j > 0; j--) {
+    no->chaves[j] = no->chaves[j - 1];
+    esforco.ajuste++;
+  }
+  for (int j = no->total + 1; j > 0; j--) {
+    no->filhos[j] = no->filhos[j - 1];
+  }
+
+  no->chaves[0] = pai->chaves[k - 1];
+  esforco.ajuste++;
+  no->filhos[0] = irmao->filhos[irmao->total];
+  if (no->filhos[0] != NULL) {
+    no->filhos[0]->pai = no;
+  }
+  no->total++;
+
+  pai->chaves[k - 1] = irmao->chaves[irmao->total - 1];
+  esforco.ajuste++;
+  irmao->total--;
+}
+
+static void b_emprestaDaDireita(BNo *pai, int k, BNo *no, BNo *irmao) {
+  no->chaves[no->total] = pai->chaves[k];
+  esforco.ajuste++;
+  no->filhos[no->total + 1] = irmao->filhos[0];
+  if (irmao->filhos[0] != NULL) {
+    irmao->filhos[0]->pai = no;
+  }
+  no->total++;
+
+  pai->chaves[k] = irmao->chaves[0];
+  esforco.ajuste++;
+  for (int j = 0; j < irmao->total - 1; j++) {
+    irmao->chaves[j] = irmao->chaves[j + 1];
+    esforco.ajuste++;
+  }
+  for (int j = 0; j < irmao->total; j++) {
+    irmao->filhos[j] = irmao->filhos[j + 1];
+  }
+  irmao->total--;
+}
+
+void b_remover(ArvoreB *arvore, int chave) {
+  BNo *no = arvore->raiz;
+  int i = 0;
+
+  while (no != NULL) {
+    i = b_pesquisaBinaria(no, chave);
+    if (i < no->total && no->chaves[i] == chave) {
+      break;
+    }
+    no = no->filhos[i];
+  }
+
+  if (no == NULL) {
+    return;
+  }
+
+  if (no->filhos[0] != NULL) {
+    BNo *folha = no->filhos[i];
+    esforco.busca++;
+    while (folha->filhos[0] != NULL) {
+      folha = folha->filhos[folha->total];
+      esforco.busca++;
+    }
+
+    no->chaves[i] = folha->chaves[folha->total - 1];
+    esforco.ajuste++;
+    no = folha;
+    i = folha->total - 1;
+  }
+
+  for (int j = i; j < no->total - 1; j++) {
+    no->chaves[j] = no->chaves[j + 1];
+    esforco.ajuste++;
+  }
+  no->total--;
+
+  while (no->pai != NULL && no->total < arvore->ordem) {
+    BNo *pai = no->pai;
+    int k = 0;
+    esforco.busca++;
+    while (pai->filhos[k] != no) {
+      k++;
+      esforco.busca++;
+    }
+
+    BNo *esquerda = k > 0 ? pai->filhos[k - 1] : NULL;
+    BNo *direita = k < pai->total ? pai->filhos[k + 1] : NULL;
+
+    if (esquerda != NULL && esquerda->total > arvore->ordem) {
+      b_emprestaDaEsquerda(pai, k, esquerda, no);
+      break;
+    }
+    if (direita != NULL && direita->total > arvore->ordem) {
+      b_emprestaDaDireita(pai, k, no, direita);
+      break;
+    }
+    break;
+  }
+}
+
 static void b_liberar(BNo *no) {
   if (no != NULL) {
     if (no->filhos[0] != NULL) {
