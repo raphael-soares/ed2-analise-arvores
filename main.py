@@ -226,7 +226,14 @@ def cmd_graficos(args):
 
     saida = Path(args.saida)
     saida.mkdir(parents=True, exist_ok=True)
+    todas = [ROTULOS[e] for e in ESTRUTURAS]
+    completo = all(rotulo in operacoes[0][3] for rotulo in todas)
+    if not completo:
+        print("comparativo exige as 5 estruturas")
+
     for prefixo, operacao, ns, series in operacoes:
+        if completo:
+            desenhar(plt, ns, series, todas, f"{operacao}: comparativo", saida / prefixo)
         for nome, titulo, rotulos in INDIVIDUAIS:
             if all(rotulo in series for rotulo in rotulos):
                 desenhar(plt, ns, series, rotulos, f"{operacao}: {titulo}", saida / f"{prefixo}-{nome}")
