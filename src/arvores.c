@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "arvore_b.h"
 #include "avl.h"
 #include "contador.h"
 #include "rn.h"
@@ -24,9 +25,19 @@ static void adicionar_rn(void *a, int v) { rn_adicionar(a, v); }
 static void remover_rn(void *a, int v) { rn_remover(a, v); }
 static void destruir_rn(void *a) { rn_destruir(a); }
 
+static void *criar_b1(void) { return b_criar(1); }
+static void *criar_b5(void) { return b_criar(5); }
+static void *criar_b10(void) { return b_criar(10); }
+static void adicionar_b(void *a, int v) { b_adicionar(a, v); }
+static void remover_b(void *a, int v) { b_remover(a, v); }
+static void destruir_b(void *a) { b_destruir(a); }
+
 static const Estrutura estruturas[] = {
     {"avl", criar_avl, adicionar_avl, remover_avl, destruir_avl},
     {"rn", criar_rn, adicionar_rn, remover_rn, destruir_rn},
+    {"b1", criar_b1, adicionar_b, remover_b, destruir_b},
+    {"b5", criar_b5, adicionar_b, remover_b, destruir_b},
+    {"b10", criar_b10, adicionar_b, remover_b, destruir_b},
 };
 
 static void embaralhar(int *v, int n) {
