@@ -117,6 +117,7 @@ def cmd_rodar(args):
 
 def cmd_experimento(args):
     import openpyxl
+    from openpyxl.chart import LineChart, Reference
     from openpyxl.styles import Font
 
     inicio = time.perf_counter()
@@ -136,6 +137,22 @@ def cmd_experimento(args):
         aba.append(["n", *(ROTULOS[e] for e in estruturas)])
         for i, n in enumerate(grade):
             aba.append([n, *(resumos[e][i][coluna] for e in estruturas)])
+
+        grafico = LineChart()
+        grafico.title = f"{titulo}: esforço médio"
+        grafico.x_axis.title = "Tamanho do conjunto (n)"
+        grafico.y_axis.title = "Esforço (operações)"
+        grafico.x_axis.delete = False
+        grafico.y_axis.delete = False
+        grafico.width = 24
+        grafico.height = 12
+        ultima = len(grade) + 1
+        grafico.add_data(Reference(aba, min_col=2, max_col=len(estruturas) + 1, min_row=1, max_row=ultima), titles_from_data=True)
+        grafico.set_categories(Reference(aba, min_col=1, min_row=2, max_row=ultima))
+        for serie in grafico.series:
+            serie.marker.symbol = "none"
+            serie.smooth = False
+        aba.add_chart(grafico, "H2")
 
     for estrutura in estruturas:
         aba = livro.create_sheet(ROTULOS[estrutura])
