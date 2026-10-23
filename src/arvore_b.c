@@ -176,6 +176,37 @@ static void b_emprestaDaDireita(BNo *pai, int k, BNo *no, BNo *irmao) {
   irmao->total--;
 }
 
+static void b_funde(BNo *pai, int s, BNo *esquerda, BNo *direita) {
+  esquerda->chaves[esquerda->total] = pai->chaves[s];
+  esforco.ajuste++;
+  esquerda->total++;
+
+  for (int j = 0; j < direita->total; j++) {
+    esquerda->chaves[esquerda->total + j] = direita->chaves[j];
+    esforco.ajuste++;
+  }
+  for (int j = 0; j <= direita->total; j++) {
+    esquerda->filhos[esquerda->total + j] = direita->filhos[j];
+    if (direita->filhos[j] != NULL) {
+      direita->filhos[j]->pai = esquerda;
+    }
+  }
+  esquerda->total += direita->total;
+
+  for (int j = s; j < pai->total - 1; j++) {
+    pai->chaves[j] = pai->chaves[j + 1];
+    esforco.ajuste++;
+  }
+  for (int j = s + 1; j < pai->total; j++) {
+    pai->filhos[j] = pai->filhos[j + 1];
+  }
+  pai->total--;
+
+  free(direita->chaves);
+  free(direita->filhos);
+  free(direita);
+}
+
 void b_remover(ArvoreB *arvore, int chave) {
   BNo *no = arvore->raiz;
   int i = 0;
@@ -232,7 +263,22 @@ void b_remover(ArvoreB *arvore, int chave) {
       b_emprestaDaDireita(pai, k, no, direita);
       break;
     }
-    break;
+
+    if (esquerda != NULL) {
+      b_funde(pai, k - 1, esquerda, no);
+    } else {
+      b_funde(pai, k, no, direita);
+    }
+    no = pai;
+  }
+
+  BNo *raiz = arvore->raiz;
+  if (raiz->total == 0 && raiz->filhos[0] != NULL) {
+    arvore->raiz = raiz->filhos[0];
+    arvore->raiz->pai = NULL;
+    free(raiz->chaves);
+    free(raiz->filhos);
+    free(raiz);
   }
 }
 
