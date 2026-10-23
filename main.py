@@ -1,8 +1,10 @@
 import argparse
+import os
 import statistics
 import subprocess
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent
@@ -123,9 +125,9 @@ def cmd_experimento(args):
     grade = sorted({1} | set(range(args.passo, args.n_max + 1, args.passo)))
     sementes = range(1, args.amostras + 1)
 
-    resumos = {}
-    for estrutura in estruturas:
-        resumos[estrutura] = resumir([executar(estrutura, s, grade) for s in sementes])
+    with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
+        jobs = {(e, s): pool.submit(executar, e, s, grade) for e in estruturas for s in sementes}
+        resumos = {e: resumir([jobs[e, s].result() for s in sementes]) for e in estruturas}
 
     livro = openpyxl.Workbook()
     livro.remove(livro.active)
