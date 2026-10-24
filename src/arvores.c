@@ -84,35 +84,32 @@ int main(int argc, char **argv) {
   }
 
   srand((unsigned)strtoul(argv[2], NULL, 10));
-  int *chaves = malloc(sizeof(int) * maior);
-  int *remocao = malloc(sizeof(int) * maior);
+  int *chaves = malloc(sizeof(int) * (maior + 1));
 
   for (int t = 0; t < quantos; t++) {
     int n = tamanhos[t];
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i <= n; i++) {
       chaves[i] = i + 1;
     }
-    embaralhar(chaves, n);
-    memcpy(remocao, chaves, sizeof(int) * n);
-    embaralhar(remocao, n);
+    embaralhar(chaves, n + 1);
 
     void *arvore = estrutura->criar();
-    esforco_zerar();
     for (int i = 0; i < n; i++) {
       estrutura->adicionar(arvore, chaves[i]);
     }
-    Esforco adicao = esforco;
 
     esforco_zerar();
-    for (int i = 0; i < n; i++) {
-      estrutura->remover(arvore, remocao[i]);
-    }
+    estrutura->adicionar(arvore, chaves[n]);
+    Esforco adicao = esforco;
+
+    int sorteada = chaves[rand() % (n + 1)];
+    esforco_zerar();
+    estrutura->remover(arvore, sorteada);
     printf("%d,%llu,%llu,%llu,%llu\n", n, adicao.busca, adicao.ajuste,
            esforco.busca, esforco.ajuste);
     estrutura->destruir(arvore);
   }
 
-  free(remocao);
   free(chaves);
   free(tamanhos);
   return 0;

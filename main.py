@@ -257,7 +257,7 @@ def main():
     p.add_argument("--estruturas", nargs="+", choices=ESTRUTURAS, default=ESTRUTURAS)
     p.add_argument("--n-max", type=positivo, default=10000)
     p.add_argument("--passo", type=positivo, default=1)
-    p.add_argument("--amostras", type=positivo, default=10)
+    p.add_argument("--amostras", type=positivo, default=100)
     p.add_argument("--saida", default="resultados")
     p.set_defaults(func=cmd_experimento)
 
