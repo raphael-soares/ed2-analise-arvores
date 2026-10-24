@@ -1,4 +1,5 @@
 import argparse
+import csv
 import os
 import statistics
 import subprocess
@@ -32,11 +33,6 @@ CORES = {
     "B ordem 5": "tab:orange",
     "B ordem 10": "tab:purple",
 }
-INDIVIDUAIS = [
-    ("avl", "AVL", ["AVL"]),
-    ("rn", "Rubro-negra", ["Rubro-negra"]),
-    ("b", "árvore B", ["B ordem 1", "B ordem 5", "B ordem 10"]),
-]
 
 
 def compilar():
@@ -128,7 +124,8 @@ def cmd_experimento(args):
 
     with ThreadPoolExecutor(max_workers=os.cpu_count()) as pool:
         jobs = {(e, s): pool.submit(executar, e, s, grade) for e in estruturas for s in sementes}
-        resumos = {e: resumir([jobs[e, s].result() for s in sementes]) for e in estruturas}
+        amostras = {(e, s): jobs[e, s].result() for e in estruturas for s in sementes}
+    resumos = {e: resumir([amostras[e, s] for s in sementes]) for e in estruturas}
 
     livro = openpyxl.Workbook()
     livro.remove(livro.active)
@@ -183,6 +180,15 @@ def cmd_experimento(args):
     saida.mkdir(parents=True, exist_ok=True)
     livro.save(saida / "esforco.xlsx")
     print(f"planilha: {saida / 'esforco.xlsx'}")
+
+    with open(saida / "amostras.csv", "w", newline="") as arquivo:
+        escritor = csv.writer(arquivo)
+        escritor.writerow(["estrutura", "semente", "n", "adicao_busca", "adicao_ajuste", "remocao_busca", "remocao_ajuste"])
+        for estrutura in estruturas:
+            for semente in sementes:
+                for linha in amostras[estrutura, semente]:
+                    escritor.writerow([estrutura, semente, *linha])
+    print(f"amostras: {saida / 'amostras.csv'}")
     print(f"tempo: {time.perf_counter() - inicio:.1f} s")
 
 
@@ -193,18 +199,17 @@ def ler_aba(livro, nome):
     return ns, series
 
 
-def desenhar(plt, ns, series, rotulos, titulo, destino, eixo_y="Esforço (operações)"):
+def desenhar(plt, ns, series, rotulos, titulo, destino):
     fig, ax = plt.subplots(figsize=(8, 5))
     for rotulo in rotulos:
         ax.plot(ns, series[rotulo], label=rotulo, color=CORES[rotulo])
     ax.set_title(titulo)
     ax.set_xlabel("Tamanho do conjunto (n)")
-    ax.set_ylabel(eixo_y)
+    ax.set_ylabel("Esforço (operações)")
     ax.grid(True)
     ax.legend()
     fig.tight_layout()
     fig.savefig(destino.with_suffix(".png"), dpi=200)
-    fig.savefig(destino.with_suffix(".pdf"))
     plt.close(fig)
     print(destino.with_suffix(".png"))
 
@@ -227,26 +232,12 @@ def cmd_graficos(args):
     saida = Path(args.saida)
     saida.mkdir(parents=True, exist_ok=True)
     todas = [ROTULOS[e] for e in ESTRUTURAS]
-    completo = all(rotulo in operacoes[0][3] for rotulo in todas)
-    if not completo:
-        print("comparativo exige as 5 estruturas")
+    if any(rotulo not in operacoes[0][3] for rotulo in todas):
+        print("os gráficos exigem as 5 estruturas na planilha", file=sys.stderr)
+        sys.exit(1)
 
     for prefixo, operacao, ns, series in operacoes:
-        if completo:
-            desenhar(plt, ns, series, todas, f"{operacao}: comparativo", saida / prefixo)
-            por_operacao = {r: [v / n for v, n in zip(series[r], ns)] for r in todas}
-            desenhar(
-                plt,
-                ns,
-                por_operacao,
-                todas,
-                f"{operacao}: esforço por operação",
-                saida / f"{prefixo}-por-operacao",
-                "Esforço médio por operação",
-            )
-        for nome, titulo, rotulos in INDIVIDUAIS:
-            if all(rotulo in series for rotulo in rotulos):
-                desenhar(plt, ns, series, rotulos, f"{operacao}: {titulo}", saida / f"{prefixo}-{nome}")
+        desenhar(plt, ns, series, todas, operacao, saida / prefixo)
 
 
 def main():

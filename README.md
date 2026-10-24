@@ -26,13 +26,13 @@ Roda uma estrutura (`avl`, `rn`, `b1`, `b5` ou `b10`) com um conjunto de n chave
 .venv/bin/python main.py experimento
 ```
 
-Roda as 5 estruturas com n de 1 a 10000 e 10 amostras e grava `resultados/esforco.xlsx`. Cada par (estrutura, semente) é uma chamada ao executável, e as chamadas rodam em paralelo. A execução completa levou 204 s num processador com 12 threads. Opções: `--estruturas`, `--n-max`, `--passo`, `--amostras` e `--saida`.
+Roda as 5 estruturas com n de 1 a 10000 e 10 amostras e grava `resultados/esforco.xlsx` (médias) e `resultados/amostras.csv` (cada amostra). Cada par (estrutura, semente) é uma chamada ao executável, e as chamadas rodam em paralelo. A execução completa levou 204 s num processador com 12 threads. Opções: `--estruturas`, `--n-max`, `--passo`, `--amostras` e `--saida`.
 
 ```
 .venv/bin/python main.py graficos
 ```
 
-Lê `resultados/esforco.xlsx` e grava os gráficos em `graficos/`, em PNG e PDF.
+Lê `resultados/esforco.xlsx` e grava os gráficos em `graficos/`, em PNG.
 
 O executável também roda sozinho: `build/arvores <estrutura> <semente> <n> [n ...]` imprime uma linha `n,adicao_busca,adicao_ajuste,remocao_busca,remocao_ajuste` para cada n.
 
@@ -66,7 +66,7 @@ A AVL segue o código da disciplina: depois de cada adição ou remoção, o bal
 
 Cada ponto dos gráficos é a média das 10 amostras.
 
-## Planilha
+## Dados
 
 `resultados/esforco.xlsx` tem as abas:
 
@@ -74,28 +74,12 @@ Cada ponto dos gráficos é a média das 10 amostras.
 - **AVL**, **Rubro-negra**, **B ordem 1**, **B ordem 5** e **B ordem 10**: médias de busca, ajuste e total da adição e da remoção, mais o desvio padrão do total entre as amostras;
 - **Sobre**: o que cada coluna conta e os parâmetros da execução.
 
+`resultados/amostras.csv` tem uma linha por (estrutura, semente, n), com `adicao_busca`, `adicao_ajuste`, `remocao_busca` e `remocao_ajuste` sem média. São 500 mil linhas; as médias da planilha saem daí.
+
 ## Gráficos
 
-Os comparativos mostram o esforço total para inserir ou remover as n chaves. Como cada operação custa da ordem de log n, o total cresce como n log n, que nessa faixa fica quase reto.
+Esforço total para inserir ou remover as n chaves, média das 10 amostras. Cada ponto da planilha é um ponto do gráfico.
 
-![Adição: comparativo](graficos/adicao.png)
+![Adição](graficos/adicao.png)
 
-![Remoção: comparativo](graficos/remocao.png)
-
-Dividindo o total por n sai o esforço médio de uma operação, que cresce devagar: com 100 vezes mais chaves (de 100 para 10000), cada operação custa entre 1,5 e 2,1 vezes mais.
-
-![Adição: esforço por operação](graficos/adicao-por-operacao.png)
-
-![Remoção: esforço por operação](graficos/remocao-por-operacao.png)
-
-![Adição: AVL](graficos/adicao-avl.png)
-
-![Remoção: AVL](graficos/remocao-avl.png)
-
-![Adição: rubro-negra](graficos/adicao-rn.png)
-
-![Remoção: rubro-negra](graficos/remocao-rn.png)
-
-![Adição: árvore B](graficos/adicao-b.png)
-
-![Remoção: árvore B](graficos/remocao-b.png)
+![Remoção](graficos/remocao.png)
