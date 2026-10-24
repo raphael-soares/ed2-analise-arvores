@@ -193,13 +193,13 @@ def ler_aba(livro, nome):
     return ns, series
 
 
-def desenhar(plt, ns, series, rotulos, titulo, destino):
+def desenhar(plt, ns, series, rotulos, titulo, destino, eixo_y="Esforço (operações)"):
     fig, ax = plt.subplots(figsize=(8, 5))
     for rotulo in rotulos:
         ax.plot(ns, series[rotulo], label=rotulo, color=CORES[rotulo])
     ax.set_title(titulo)
     ax.set_xlabel("Tamanho do conjunto (n)")
-    ax.set_ylabel("Esforço (operações)")
+    ax.set_ylabel(eixo_y)
     ax.grid(True)
     ax.legend()
     fig.tight_layout()
@@ -234,6 +234,16 @@ def cmd_graficos(args):
     for prefixo, operacao, ns, series in operacoes:
         if completo:
             desenhar(plt, ns, series, todas, f"{operacao}: comparativo", saida / prefixo)
+            por_operacao = {r: [v / n for v, n in zip(series[r], ns)] for r in todas}
+            desenhar(
+                plt,
+                ns,
+                por_operacao,
+                todas,
+                f"{operacao}: esforço por operação",
+                saida / f"{prefixo}-por-operacao",
+                "Esforço médio por operação",
+            )
         for nome, titulo, rotulos in INDIVIDUAIS:
             if all(rotulo in series for rotulo in rotulos):
                 desenhar(plt, ns, series, rotulos, f"{operacao}: {titulo}", saida / f"{prefixo}-{nome}")

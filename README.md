@@ -76,9 +76,17 @@ Cada ponto dos gráficos é a média das 10 amostras.
 
 ## Gráficos
 
+Os comparativos mostram o esforço total para inserir ou remover as n chaves. Como cada operação custa da ordem de log n, o total cresce como n log n, que nessa faixa fica quase reto.
+
 ![Adição: comparativo](graficos/adicao.png)
 
 ![Remoção: comparativo](graficos/remocao.png)
+
+Dividindo o total por n sai o esforço médio de uma operação, que cresce devagar: com 100 vezes mais chaves (de 100 para 10000), cada operação custa entre 1,5 e 2,1 vezes mais.
+
+![Adição: esforço por operação](graficos/adicao-por-operacao.png)
+
+![Remoção: esforço por operação](graficos/remocao-por-operacao.png)
 
 ![Adição: AVL](graficos/adicao-avl.png)
 
