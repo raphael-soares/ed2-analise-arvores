@@ -26,7 +26,7 @@ Roda uma estrutura (`avl`, `rn`, `b1`, `b5` ou `b10`) com uma árvore de n chave
 .venv/bin/python main.py experimento
 ```
 
-Roda as 5 estruturas com n de 1 a 10000 e 100 amostras e grava `resultados/esforco.xlsx` (médias) e `resultados/amostras.csv` (cada amostra). Cada par (estrutura, semente) é uma chamada ao executável, e as chamadas rodam em paralelo. A execução completa levou 699 s num processador com 12 threads. Opções: `--estruturas`, `--n-max`, `--passo`, `--amostras` e `--saida`.
+Roda as 5 estruturas com n de 1 a 10000 e 1000 amostras e grava `resultados/esforco.xlsx` (médias) e `resultados/amostras.csv` (cada amostra). Cada par (estrutura, semente) é uma chamada ao executável, e as chamadas rodam em paralelo. A execução completa levou 7327 s (cerca de 2 h) num processador com 12 threads. Opções: `--estruturas`, `--n-max`, `--passo`, `--amostras` e `--saida`.
 
 ```
 .venv/bin/python main.py graficos
@@ -59,13 +59,13 @@ A AVL segue o código da disciplina: depois de cada adição ou remoção, o bal
 
 ## Experimento
 
-- Sementes de 1 a 100. Para cada semente e cada n, as chaves são uma permutação de 1..n+1 embaralhada com `rand`.
+- Sementes de 1 a 1000. Para cada semente e cada n, as chaves são uma permutação de 1..n+1 embaralhada com `rand`.
 - A árvore é montada do zero para cada n com as n primeiras chaves da permutação, sem contar esforço.
 - **Adição**: insere a chave que sobrou (uma chave aleatória numa árvore de n chaves) e conta o esforço dessa única operação.
 - **Remoção**: em seguida sorteia uma das n+1 chaves presentes, remove e conta o esforço dessa única operação. A árvore tem n+1 chaves nesse momento.
 - A mesma semente gera os mesmos conjuntos em todas as estruturas.
 
-Cada ponto dos gráficos é a média das 100 amostras.
+Cada ponto dos gráficos é a média das 1000 amostras.
 
 ## Dados
 
@@ -75,11 +75,11 @@ Cada ponto dos gráficos é a média das 100 amostras.
 - **AVL**, **Rubro-negra**, **B ordem 1**, **B ordem 5** e **B ordem 10**: médias de busca, ajuste e total da adição e da remoção, mais o desvio padrão do total entre as amostras;
 - **Sobre**: o que cada coluna conta e os parâmetros da execução.
 
-`resultados/amostras.csv` sai da mesma execução, com uma linha por (estrutura, semente, n) e `adicao_busca`, `adicao_ajuste`, `remocao_busca` e `remocao_ajuste` sem média. São 5 milhões de linhas (170 MB), por isso não está no repositório; `main.py experimento` gera o arquivo de novo.
+`resultados/amostras.csv` sai da mesma execução, com uma linha por (estrutura, semente, n) e `adicao_busca`, `adicao_ajuste`, `remocao_busca` e `remocao_ajuste` sem média. São 50 milhões de linhas (cerca de 1,7 GB), por isso não está no repositório; `main.py experimento` gera o arquivo de novo.
 
 ## Gráficos
 
-Esforço de uma adição e de uma remoção numa árvore de n chaves, média das 100 amostras. Cada ponto da planilha é um ponto do gráfico.
+Esforço de uma adição e de uma remoção numa árvore de n chaves, média das 1000 amostras. Cada ponto da planilha é um ponto do gráfico.
 
 ![Adição](graficos/adicao.png)
 
